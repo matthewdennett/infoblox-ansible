@@ -122,7 +122,7 @@ options:
 '''
 
 EXAMPLES = '''
-# TODO - Need to update all the descriptions
+
 - name: Configure a ipv4 reserved range 
   infoblox.nios_modules.nios_range:
     network: 192.168.10.0/24
@@ -143,8 +143,7 @@ EXAMPLES = '''
     start: 192.168.10.10
     end: 192.168.10.20
     name: Test Range 1 
-    served_by: 
-      - member: infoblox1.localdomain
+    member: infoblox1.localdomain
     comment: this is a test comment
     state: present
     provider:
@@ -159,8 +158,7 @@ EXAMPLES = '''
     start: 192.168.10.10
     end: 192.168.10.20
     name: Test Range 1 
-    served_by: 
-      - fail_over: dhcp-failover-1
+    failover_association: fo_association_01
     comment: this is a test comment
     state: present
     provider:
@@ -169,6 +167,20 @@ EXAMPLES = '''
       password: admin
   connection: local
 
+- name: Configure a ipv4 range served by a failover association
+  infoblox.nios_modules.nios_range:
+    network: 192.168.10.0/24
+    start: 192.168.10.10
+    end: 192.168.10.20
+    name: Test Range 1 
+    ms_server: dc01.ad.localdomain
+    comment: this is a test comment
+    state: present
+    provider:
+      host: "{{ inventory_hostname_short }}"
+      username: admin
+      password: admin
+  connection: local
 
 '''
 
@@ -176,11 +188,9 @@ RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six import iteritems
-from ..module_utils.api import WapiModule
-from ..module_utils.api import NIOS_IPV4_NETWORK, NIOS_IPV6_NETWORK
-from ..module_utils.api import NIOS_IPV4_NETWORK_CONTAINER, NIOS_IPV6_NETWORK_CONTAINER
-from ..module_utils.api import normalize_ib_spec
-from ..module_utils.network import validate_ip_address, validate_ip_v6_address
+from module_utils.api import WapiModule
+from module_utils.api import NIOS_RANGE
+from module_utils.api import normalize_ib_spec
 
 
 def options(module):
@@ -208,31 +218,21 @@ def options(module):
     return options
 
 
-def check_ip_addr_type(obj_filter, ib_spec):
-  #TODO - Is this Needed check
-  # Possibly use this to return a IPV4 or V6 range???
-    '''This function will check if the argument ip is type v4/v6 and return appropriate infoblox
-       network/networkcontainer type
-    '''
+# def check_ip_addr_type(obj_filter, ib_spec):
+#   #TODO - Is this Needed check
+#   # Possibly use this to return a IPV4 or V6 range???
+#     '''This function will check if the argument ip is type v4/v6 and return appropriate infoblox
+#        network/networkcontainer type
+#     '''
 
-    ip = obj_filter['network']
-    if 'container' in obj_filter and obj_filter['container']:
-        check_ip = ip.split('/')
-        del ib_spec['container']  # removing the container key from post arguments
-        del ib_spec['options']  # removing option argument as for network container it's not supported
-        del ib_spec['template']  # removing template argument as it is not searchable argument
-        if validate_ip_address(check_ip[0]):
-            return NIOS_IPV4_NETWORK_CONTAINER, ib_spec
-        elif validate_ip_v6_address(check_ip[0]):
-            return NIOS_IPV6_NETWORK_CONTAINER, ib_spec
-    else:
-        check_ip = ip.split('/')
-        del ib_spec['container']  # removing the container key from post arguments
-        del ib_spec['template']  # removing template argument as it is not searchable argument
-        if validate_ip_address(check_ip[0]):
-            return NIOS_IPV4_NETWORK, ib_spec
-        elif validate_ip_v6_address(check_ip[0]):
-            return NIOS_IPV6_NETWORK, ib_spec
+#     ip = obj_filter['network']
+#     check_ip = ip.split('/')
+#     del ib_spec['container']  # removing the container key from post arguments
+#     del ib_spec['template']  # removing template argument as it is not searchable argument
+#     if validate_ip_address(check_ip[0]):
+#         return NIOS_IPV4_NETWORK, ib_spec
+#     elif validate_ip_v6_address(check_ip[0]):
+#         return NIOS_IPV6_NETWORK, ib_spec
 
 
 def check_vendor_specific_dhcp_option(module, ib_spec):
@@ -262,19 +262,25 @@ def main():
         vendor_class=dict(default='DHCP')
     )
 
+    # This is what gets posted to the WAPI API
     ib_spec = dict(
-        network=dict(required=True, aliases=['name', 'cidr'], ib_req=True),
+        network=dict(required=True, aliases=['name', 'cidr']),
         network_view=dict(default='default', ib_req=True),
 
-        start=dict(required=True, type='str', ib_req=True),
-        end=dict(required=True, type='str', ib_req=True),
+        start_addr=dict(required=True, aliases=['start', 'first_addr', 'first'], type='str', ib_req=True),
+        end_addr=dict(required=True, aliases=['end', 'last_addr', 'last'], type='str', ib_req=True),
         name=dict(type='str'),
-        disabled_for_dhcp=dict(type='bool', default='false'),
+        disable=dict(type='bool', default='false',),
         options=dict(type='list', elements='dict', options=option_spec, transform=options),
-        template=dict(type='str'),
+        # template=dict(type='str'),
+        member=dict(type='str'),
+        failover_association=dict(type='str'),
+        ms_server=dict(type='str'),
+        server_association_type=dict(type='str', 
+                                      default= 'NONE', 
+                                      choices=['NONE', 'FAILOVER', 'MEMBER', 'MS_FAILOVER', 'MS_SERVER']),
         extattrs=dict(type='dict'),
-        comment=dict(),
-        members=dict(type='list', elements='dict')
+        comment=dict()
     )
 
     argument_spec = dict(
@@ -288,16 +294,16 @@ def main():
     module = AnsibleModule(argument_spec=argument_spec,
                            supports_check_mode=True)
 
-    # to get the argument ipaddr
-    # TODO - What is this doing for us just here?
-    obj_filter = dict([(k, module.params[k]) for k, v in iteritems(ib_spec) if v.get('ib_req')])
-    network_type, ib_spec = check_ip_addr_type(obj_filter, ib_spec)
+    # # to get the argument ipaddr
+    # # TODO - What is this doing for us just here?
+    # obj_filter = dict([(k, module.params[k]) for k, v in iteritems(ib_spec) if v.get('ib_req')])
+    # # network_type, ib_spec = check_ip_addr_type(obj_filter, ib_spec)
 
     wapi = WapiModule(module)
     # to check for vendor specific dhcp option
     ib_spec = check_vendor_specific_dhcp_option(module, ib_spec)
 
-    result = wapi.run(network_type, ib_spec)
+    result = wapi.run(NIOS_RANGE, ib_spec)
 
     module.exit_json(**result)
 
