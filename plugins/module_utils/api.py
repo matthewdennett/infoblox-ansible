@@ -52,6 +52,7 @@ NIOS_NETWORK_VIEW = 'networkview'
 NIOS_HOST_RECORD = 'record:host'
 NIOS_IPV4_NETWORK = 'network'
 NIOS_IPV6_NETWORK = 'ipv6network'
+NIOS_RANGE = 'range'
 NIOS_ZONE = 'zone_auth'
 NIOS_PTR_RECORD = 'record:ptr'
 NIOS_A_RECORD = 'record:a'
@@ -200,6 +201,22 @@ def convert_members_to_struct(member_spec):
         member_spec['members'] = [{'_struct': 'dhcpmember', 'name': k['name']} for k in member_spec['members']]
     return member_spec 
 
+def convert_range_member_to_struct(member_spec):
+    # TODO - Need some error checking that different server type are not all defined at once. 
+
+    # A member node was passed in. Ehsure the correct type and struct
+    if 'member' in member_spec.keys(): 
+        member_spec['member'] = {'_struct': 'dhcpmember', 'name': member_spec['member']}
+        member_spec['server_association_type'] == 'MEMBER'
+    # A FO association was passed in. Ensure the correct type is set
+    elif 'failover_association' in member_spec.keys(): 
+        member_spec['server_association_type'] == 'FAILOVER'
+    # MS server was passed in. Ensure the correct type and struct
+    elif 'ms_server' in member_spec.keys(): 
+        member_spec['ms_server'] = {'_struct': 'msdhcpserver', 'ipv4addr': member_spec['ms_server']}
+        member_spec['server_association_type'] == 'MS_SERVER'
+
+    return member_spec 
 
 def normalize_ib_spec(ib_spec):
     result = {}
@@ -337,6 +354,9 @@ class WapiModule(WapiBase):
 
         if (ib_obj_type == NIOS_IPV4_NETWORK or ib_obj_type == NIOS_IPV6_NETWORK):
             proposed_object = convert_members_to_struct(proposed_object)
+
+        if (ib_obj_type == NIOS_RANGE):
+            proposed_object = convert_range_member_to_struct(proposed_object)
 
         # checks if the 'text' field has to be updated for the TXT Record
         if (ib_obj_type == NIOS_TXT_RECORD):
