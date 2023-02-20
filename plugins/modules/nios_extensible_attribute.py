@@ -218,7 +218,6 @@ def main():
     module = AnsibleModule(argument_spec=argument_spec,
                            supports_check_mode=True)
 
-
     wapi = WapiModule(module)
 
     result = wapi.run('extensibleattributedef', ib_spec)
