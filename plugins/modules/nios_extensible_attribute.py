@@ -145,13 +145,13 @@ EXAMPLES = '''
     name: my_list
     type: ENUM
     state: present
-      list_values:
-        - _struct: extensibleattributedef:listvalues
-          value: one
-        - _struct: extensibleattributedef:listvalues
-          value: two
-        - _struct: extensibleattributedef:listvalues
-          value: three
+    list_values:
+      - _struct: extensibleattributedef:listvalues
+        value: one
+      - _struct: extensibleattributedef:listvalues
+        value: two
+      - _struct: extensibleattributedef:listvalues
+        value: three
     provider:
       host: "{{ inventory_hostname_short }}"
       username: admin
@@ -201,10 +201,10 @@ def main():
         comment=dict(type='str'),
         default_value=dict(type='str'),
         list_values=dict(type='list'),
-        max=dict(type='int'),
-        min=dict(type='int'),
+        max=dict(type='str'),
+        min=dict(type='str'),
         name=dict(type='str', ib_req=True),
-        type=dict(type='str')
+        type=dict(type='str', default='STRING')
     )
 
     argument_spec = dict(
