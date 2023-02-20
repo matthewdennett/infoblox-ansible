@@ -14,7 +14,7 @@ short_description: Configure Infoblox NIOS extensible attribute definition
 version_added: "1.5.0"
 description:
   - Adds and/or removes a extensible attribute definition objects from
-    Infoblox NIOS servers.  This module manages NIOS C(extensibleattributedef) 
+    Infoblox NIOS servers.  This module manages NIOS C(extensibleattributedef)
     objects using the Infoblox WAPI interface over REST.
 requirements:
   - infoblox-client
@@ -22,23 +22,22 @@ extends_documentation_fragment: infoblox.nios_modules.nios
 notes:
     - This module supports C(check_mode).
 options:
-
   comment:
     description:
       - Configures a text string comment to be associated with the instance
-        of this object.  The provided text string will be configured on the
+        of this object. The provided text string will be configured on the
         object instance.
     type: str
   default_value:
     description:
-      - Configures the default value which is prepopulated in the GUI when
+      - Configures the default value which is pre populated in the GUI when
         this attribute is used. Email, URL and string types the value is a
         with a maximum of 256 characters.
     type: str
   list_values:
-    descriptions:
+    description:
       - Configures a list of preset values associated with the instance of this
-      object. Only applicable when the attribute type is set to ENUM.
+        object. Only applicable when the attribute type is set to ENUM.
     type: list
   max:
     description:
@@ -48,7 +47,7 @@ options:
         can contain. When provided for an extensible attribute of type INTEGER
         the value represents the maximum integer value permitted.Not
         applicable for other attributes types.
-      type: str
+    type: str
   min:
     description:
       - Configures the minimum value to be associated with the instance of
@@ -57,7 +56,7 @@ options:
         can contain. When provided for an extensible attribute of type INTEGER
         the value represents the minimum integer value permitted. Not
         applicable for other attributes types.
-      type: str
+    type: str
   name:
     description:
       - Configures the intended name of the instance of the object on the
@@ -90,7 +89,7 @@ options:
       - present
       - absent
 '''
-# TODO - Create examples of the task
+
 EXAMPLES = '''
 - name: Configure an extensible attribute
   infoblox.nios_modules.nios_extensible_attribute:
