@@ -39,6 +39,17 @@ options:
       - Configures a list of preset values associated with the instance of this
         object. Only applicable when the attribute type is set to ENUM.
     type: list
+    elements: dict
+    suboptions:
+      _strict:
+        description:
+          - The identifier of the struct type the API is expecting. In this
+            instance it must be set to 'extensibleattributedef:listvalues'
+        type: str
+      value:
+        description:
+          - The value to be configured for this item of the list.
+        type: str
   max:
     description:
       - Configures the maximum value to be associated with the instance of
@@ -204,7 +215,7 @@ def main():
         max=dict(type='str'),
         min=dict(type='str'),
         name=dict(type='str', required=True, ib_req=True),
-        type=dict(type='str', required=True, default='STRING',
+        type=dict(type='str', default='STRING',
               choices=['DATE', 'EMAIL', 'ENUM', 'INTEGER', 'STRING', 'URL'])
     )
 
