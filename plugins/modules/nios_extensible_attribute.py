@@ -204,7 +204,8 @@ def main():
         max=dict(type='str'),
         min=dict(type='str'),
         name=dict(type='str', required=True, ib_req=True),
-        type=dict(type='str', required=True, default='STRING')
+        type=dict(type='str', required=True, default='STRING',
+              choices=['DATE', 'EMAIL', 'ENUM', 'INTEGER', 'STRING', 'URL'])
     )
 
     argument_spec = dict(
