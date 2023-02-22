@@ -200,11 +200,11 @@ def main():
     ib_spec = dict(
         comment=dict(type='str'),
         default_value=dict(type='str'),
-        list_values=dict(type='list'),
+        list_values=dict(type='list', elements='dict'),
         max=dict(type='str'),
         min=dict(type='str'),
-        name=dict(type='str', ib_req=True),
-        type=dict(type='str', default='STRING')
+        name=dict(type='str', required=True, ib_req=True),
+        type=dict(type='str', required=True, default='STRING')
     )
 
     argument_spec = dict(
