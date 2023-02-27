@@ -39,17 +39,7 @@ options:
       - Configures a list of preset values associated with the instance of this
         object. Only applicable when the attribute type is set to ENUM.
     type: list
-    elements: dict
-    suboptions:
-      _strict:
-        description:
-          - The identifier of the struct type the API is expecting. In this
-            instance it must be set to 'extensibleattributedef:listvalues'
-        type: str
-      value:
-        description:
-          - The value to be configured for this item of the list.
-        type: str
+    elements: str
   max:
     description:
       - Configures the maximum value to be associated with the instance of
@@ -157,12 +147,9 @@ EXAMPLES = '''
     type: ENUM
     state: present
     list_values:
-      - _struct: extensibleattributedef:listvalues
-        value: one
-      - _struct: extensibleattributedef:listvalues
-        value: two
-      - _struct: extensibleattributedef:listvalues
-        value: three
+      - one
+      - two
+      - three
     provider:
       host: "{{ inventory_hostname_short }}"
       username: admin
@@ -179,31 +166,6 @@ from ..module_utils.api import WapiModule
 from ..module_utils.api import normalize_ib_spec
 
 
-def options(module):
-    ''' Transforms the module argument into a valid WAPI struct
-    This function will transform the options argument into a structure that
-    is a valid WAPI structure in the format of:
-        {
-            name: <value>,
-            num: <value>,
-            value: <value>,
-            use_option: <value>,
-            vendor_class: <value>
-        }
-    It will remove any options that are set to None since WAPI will error on
-    that condition.  It will also verify that either `name` or `num` is
-    set in the structure but does not validate the values are equal.
-    The remainder of the value validation is performed by WAPI
-    '''
-    options = list()
-    for item in module.params['options']:
-        opt = dict([(k, v) for k, v in iteritems(item) if v is not None])
-        if 'name' not in opt and 'num' not in opt:
-            module.fail_json(msg='one of `name` or `num` is required for option value')
-        options.append(opt)
-    return options
-
-
 def main():
     ''' Main entry point for module execution
     '''
@@ -211,7 +173,7 @@ def main():
     ib_spec = dict(
         comment=dict(type='str'),
         default_value=dict(type='str'),
-        list_values=dict(type='list', elements='dict'),
+        list_values=dict(type='list', elements='str'),
         max=dict(type='str'),
         min=dict(type='str'),
         name=dict(type='str', required=True, ib_req=True),
