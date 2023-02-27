@@ -177,7 +177,7 @@ def main():
         min=dict(type='str'),
         name=dict(type='str', required=True, ib_req=True),
         type=dict(type='str', default='STRING',
-              choices=['DATE', 'EMAIL', 'ENUM', 'INTEGER', 'STRING', 'URL'])
+                  choices=['DATE', 'EMAIL', 'ENUM', 'INTEGER', 'STRING', 'URL'])
     )
 
     argument_spec = dict(
