@@ -69,7 +69,6 @@ options:
       - Configures the intended type for this attribute object definition
         on the NIOS server.
     type: str
-    required: true
     default: STRING
     choices:
       - DATE
