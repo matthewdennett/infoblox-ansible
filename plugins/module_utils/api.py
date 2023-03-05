@@ -570,7 +570,7 @@ class WapiModule(WapiBase):
                 # Compare the items of the dict to see if they are equal. A
                 # difference stops the comparison and returns false. If they
                 # are equal move on to the next item
-                if self.compare_objects(current_item, proposed_item) == False:
+                if self.compare_objects(current_item, proposed_item) is False:
                     return False
                 else:
                     continue
@@ -732,7 +732,7 @@ class WapiModule(WapiBase):
 
             if (ib_obj_type in (NIOS_IPV4_NETWORK_CONTAINER, NIOS_IPV6_NETWORK_CONTAINER)):
                 # del key 'members' as nios_network get_object fails with the key present
-                # Don't reinstate the field after as it is not valid for network containers 
+                # Don't reinstate the field after as it is not valid for network containers
                 del ib_spec['members']
 
             ib_obj = self.get_object(ib_obj_type, obj_filter.copy(), return_fields=list(ib_spec.keys()))
