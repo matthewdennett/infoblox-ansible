@@ -229,10 +229,13 @@ RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six import iteritems
-from ..module_utils.api import WapiModule
-from ..module_utils.api import NIOS_RANGE
-from ..module_utils.api import normalize_ib_spec
+# from ..module_utils.api import WapiModule
+# from ..module_utils.api import NIOS_RANGE
+# from ..module_utils.api import normalize_ib_spec
 
+from module_utils.api import WapiModule
+from module_utils.api import NIOS_RANGE
+from module_utils.api import normalize_ib_spec
 
 def options(module):
     ''' Transforms the module argument into a valid WAPI struct
@@ -271,6 +274,30 @@ def check_vendor_specific_dhcp_option(module, ib_spec):
                         del temp_dict['use_option']
     return ib_spec
 
+def convert_range_member_to_struct(module):
+    '''This function will check the module input to ensure that only one member assignment type is specified at once.
+    Member passed in is converted to the correct struct for the API to understand bassed on the member type.
+    '''
+    # Error checking that only one member type was defined
+    params = [k for k in module.params.keys() if module.params[k] != None ]
+    opts = list(set(params).intersection(['member', 'failover_association', 'ms_server']))
+    if len(opts) > 1:
+        raise AttributeError("'%s' can not be defined when '%s' is defined!" % (opts[0], opts[1]))
+
+    # A member node was passed in. Ehsure the correct type and struct
+    if 'member' in opts:
+        module.params['member'] = {'_struct': 'dhcpmember', 'name': module.params['member']}
+        module.params['server_association_type'] = 'MEMBER'
+    # A FO association was passed in. Ensure the correct type is set
+    elif 'failover_association' in opts:
+        module.params['server_association_type'] = 'FAILOVER'
+    # MS server was passed in. Ensure the correct type and struct
+    elif 'ms_server' in opts:
+        module.params['ms_server'] = {'_struct': 'msdhcpserver', 'ipv4addr': module.params['ms_server']}
+        module.params['server_association_type'] = 'MS_SERVER'
+
+    return module
+
 
 def main():
     ''' Main entry point for module execution
@@ -298,7 +325,8 @@ def main():
         member=dict(type='str'),
         failover_association=dict(type='str'),
         ms_server=dict(type='str'),
-        server_association_type=dict(type='str', default='NONE', choices=['NONE', 'FAILOVER', 'MEMBER', 'FAILOVER_MS', 'MS_SERVER']),
+        server_association_type=dict(type='str', choices=['NONE', 'FAILOVER', 'MEMBER', 'FAILOVER_MS', 'MS_SERVER']),
+        # server_association_type=dict(type='str', default='NONE', choices=['NONE', 'FAILOVER', 'MEMBER', 'FAILOVER_MS', 'MS_SERVER']),
         extattrs=dict(type='dict'),
         comment=dict()
     )
@@ -312,7 +340,7 @@ def main():
     argument_spec.update(WapiModule.provider_spec)
 
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
-
+    module = convert_range_member_to_struct(module)
     wapi = WapiModule(module)
     # to check for vendor specific dhcp option
     ib_spec = check_vendor_specific_dhcp_option(module, ib_spec)

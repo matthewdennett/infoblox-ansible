@@ -184,25 +184,25 @@ def member_normalize(member_spec):
     return member_spec
 
 
-def convert_range_member_to_struct(member_spec):
-    # Error checking that only one member type was defined
-    opts = list(set(member_spec.keys()).intersection(['member', 'failover_association', 'ms_server']))
-    if len(opts) > 1:
-        raise AttributeError("'%s' can not be defined when '%s' is defined!" % (opts[0], opts[1]))
+# def convert_range_member_to_struct(member_spec):
+#     # Error checking that only one member type was defined
+#     opts = list(set(member_spec.keys()).intersection(['member', 'failover_association', 'ms_server']))
+#     if len(opts) > 1:
+#         raise AttributeError("'%s' can not be defined when '%s' is defined!" % (opts[0], opts[1]))
 
-    # A member node was passed in. Ehsure the correct type and struct
-    if 'member' in member_spec.keys():
-        member_spec['member'] = {'_struct': 'dhcpmember', 'name': member_spec['member']}
-        member_spec['server_association_type'] == 'MEMBER'
-    # A FO association was passed in. Ensure the correct type is set
-    elif 'failover_association' in member_spec.keys():
-        member_spec['server_association_type'] == 'FAILOVER'
-    # MS server was passed in. Ensure the correct type and struct
-    elif 'ms_server' in member_spec.keys():
-        member_spec['ms_server'] = {'_struct': 'msdhcpserver', 'ipv4addr': member_spec['ms_server']}
-        member_spec['server_association_type'] == 'MS_SERVER'
+#     # A member node was passed in. Ehsure the correct type and struct
+#     if 'member' in member_spec.keys():
+#         member_spec['member'] = {'_struct': 'dhcpmember', 'name': member_spec['member']}
+#         member_spec['server_association_type'] == 'MEMBER'
+#     # A FO association was passed in. Ensure the correct type is set
+#     elif 'failover_association' in member_spec.keys():
+#         member_spec['server_association_type'] == 'FAILOVER'
+#     # MS server was passed in. Ensure the correct type and struct
+#     elif 'ms_server' in member_spec.keys():
+#         member_spec['ms_server'] = {'_struct': 'msdhcpserver', 'ipv4addr': member_spec['ms_server']}
+#         member_spec['server_association_type'] == 'MS_SERVER'
 
-    return member_spec
+#     return member_spec
 
 
 def convert_members_to_struct(member_spec):
@@ -361,8 +361,8 @@ class WapiModule(WapiBase):
         if (ib_obj_type == NIOS_IPV4_NETWORK or ib_obj_type == NIOS_IPV6_NETWORK):
             proposed_object = convert_members_to_struct(proposed_object)
 
-        if (ib_obj_type == NIOS_RANGE):
-            proposed_object = convert_range_member_to_struct(proposed_object)
+        # if (ib_obj_type == NIOS_RANGE):
+        #     proposed_object = convert_range_member_to_struct(proposed_object)
 
         # checks if the 'text' field has to be updated for the TXT Record
         if (ib_obj_type == NIOS_TXT_RECORD):
@@ -446,6 +446,11 @@ class WapiModule(WapiBase):
                     del proposed_object['zone_format']
                     self.update_object(ref, proposed_object)
                     result['changed'] = True
+                # elif 'network_view' in proposed_object and (ib_obj_type in (NIOS_RANGE)):
+                #     # proposed_object.pop('network_view')
+                #     # proposed_object.pop('server_association_type')
+                #     self.update_object(ref, proposed_object)
+                #     result['changed'] = True
                 elif 'network_view' in proposed_object and (ib_obj_type not in (NIOS_IPV4_FIXED_ADDRESS, NIOS_IPV6_FIXED_ADDRESS)):
                     proposed_object.pop('network_view')
                     result['changed'] = True
