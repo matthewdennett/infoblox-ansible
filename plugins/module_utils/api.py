@@ -743,8 +743,10 @@ class WapiModule(WapiBase):
             del ib_spec['new_end_addr']
             ib_obj = self.get_object(ib_obj_type, obj_filter.copy(), return_fields=list(ib_spec.keys()))
             # Restore the keys to the object.
-            if new_start: ib_spec['new_start_addr'] = new_start
-            if new_end: ib_spec['new_end_addr'] = new_end
+            if new_start:
+                ib_spec['new_start_addr'] = new_start
+            if new_end:
+                ib_spec['new_end_addr'] = new_end
 
         else:
             ib_obj = self.get_object(ib_obj_type, obj_filter.copy(), return_fields=list(ib_spec.keys()))

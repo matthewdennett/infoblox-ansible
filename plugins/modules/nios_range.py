@@ -153,7 +153,6 @@ options:
         set as needed automatically during module execution.
     type: str
     required: false
-    default: NONE
     choices:
       - NONE
       - FAILOVER
@@ -271,6 +270,7 @@ from ..module_utils.api import WapiModule
 from ..module_utils.api import NIOS_RANGE
 from ..module_utils.api import normalize_ib_spec
 
+
 def options(module):
     ''' Transforms the module argument into a valid WAPI struct
     This function will transform the options argument into a structure that
@@ -308,12 +308,13 @@ def check_vendor_specific_dhcp_option(module, ib_spec):
                         del temp_dict['use_option']
     return ib_spec
 
+
 def convert_range_member_to_struct(module):
     '''This function will check the module input to ensure that only one member assignment type is specified at once.
     Member passed in is converted to the correct struct for the API to understand bassed on the member type.
     '''
     # Error checking that only one member type was defined
-    params = [k for k in module.params.keys() if module.params[k] != None ]
+    params = [k for k in module.params.keys() if module.params[k] is not None]
     opts = list(set(params).intersection(['member', 'failover_association', 'ms_server']))
     if len(opts) > 1:
         raise AttributeError("'%s' can not be defined when '%s' is defined!" % (opts[0], opts[1]))
