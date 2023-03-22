@@ -86,22 +86,44 @@ options:
     type: str
   start_addr:
     description:
-      - Configures IP address this object instance is to begin from.
+      - Configures IP address this object instance is to begin from. If
+        'new_start_addr' is defined during a create operation this value is
+        overridden with the value of 'new_start_addr'
     type: str
     required: true
     aliases:
       - start
       - first_addr
       - first
+  new_start_addr:
+    description:
+      - Configures IP address to update this object instance to begin from.
+    type: str
+    required: false
+    aliases:
+      - new_start
+      - new_first_addr
+      - new_first
   end_addr:
     description:
-      - Configures IP address this object instance is to end at.
+      - Configures IP address this object instance is to end at. If
+        'new_end_addr' is defined during a create operation this value is
+        overridden with the value of 'new_end_addr'
     type: str
     required: true
     aliases:
       - end
       - last_addr
       - last
+  new_end_addr:
+    description:
+      - Configures IP address to update this object instance to end at.
+    type: str
+    required: false
+    aliases:
+      - new_end
+      - new_last_addr
+      - new_last
   member:
     description:
       - The hostname of the Nios member which will be configured to server
@@ -179,6 +201,22 @@ EXAMPLES = '''
       password: admin
   connection: local
 
+- name: Upadtes a ipv4 reserved range
+  infoblox.nios_modules.nios_range:
+    network: 192.168.10.0/24
+    start: 192.168.10.10
+    new_start: 192.168.10.5
+    end: 192.168.10.20
+    new_end: 192.168.10.50
+    name: Test Range 1
+    comment: this is a test comment
+    state: present
+    provider:
+      host: "{{ inventory_hostname_short }}"
+      username: admin
+      password: admin
+  connection: local
+
 - name: Configure a ipv4 range served by a member
   infoblox.nios_modules.nios_range:
     network: 192.168.10.0/24
@@ -229,13 +267,9 @@ RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six import iteritems
-# from ..module_utils.api import WapiModule
-# from ..module_utils.api import NIOS_RANGE
-# from ..module_utils.api import normalize_ib_spec
-
-from module_utils.api import WapiModule
-from module_utils.api import NIOS_RANGE
-from module_utils.api import normalize_ib_spec
+from ..module_utils.api import WapiModule
+from ..module_utils.api import NIOS_RANGE
+from ..module_utils.api import normalize_ib_spec
 
 def options(module):
     ''' Transforms the module argument into a valid WAPI struct
@@ -318,7 +352,9 @@ def main():
         network=dict(required=True, aliases=['cidr']),
         network_view=dict(default='default', ib_req=True),
         start_addr=dict(required=True, aliases=['start', 'first_addr', 'first'], type='str', ib_req=True),
+        new_start_addr=dict(aliases=['new_start', 'new_first_addr', 'new_first'], type='str'),
         end_addr=dict(required=True, aliases=['end', 'last_addr', 'last'], type='str', ib_req=True),
+        new_end_addr=dict(aliases=['new_end', 'new_last_addr', 'new_last'], type='str'),
         name=dict(type='str'),
         disable=dict(type='bool', default='false',),
         options=dict(type='list', elements='dict', options=option_spec, transform=options),
@@ -326,7 +362,6 @@ def main():
         failover_association=dict(type='str'),
         ms_server=dict(type='str'),
         server_association_type=dict(type='str', choices=['NONE', 'FAILOVER', 'MEMBER', 'FAILOVER_MS', 'MS_SERVER']),
-        # server_association_type=dict(type='str', default='NONE', choices=['NONE', 'FAILOVER', 'MEMBER', 'FAILOVER_MS', 'MS_SERVER']),
         extattrs=dict(type='dict'),
         comment=dict()
     )
