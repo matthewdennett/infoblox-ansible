@@ -450,7 +450,7 @@ class WapiModule(WapiBase):
                 #     # proposed_object.pop('network_view')
                 #     # proposed_object.pop('server_association_type')
                 #     self.update_object(ref, proposed_object)
-                #     result['changed'] = True
+                #     result['changed'] = True 
                 elif 'network_view' in proposed_object and (ib_obj_type not in (NIOS_IPV4_FIXED_ADDRESS, NIOS_IPV6_FIXED_ADDRESS)):
                     proposed_object.pop('network_view')
                     result['changed'] = True
