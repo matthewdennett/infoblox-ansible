@@ -376,9 +376,6 @@ class WapiModule(WapiBase):
                 proposed_object['end_addr'] = proposed_object.get('new_end_addr')
                 del proposed_object['new_end_addr']
 
-        if (ib_obj_type == NIOS_IPV4_NETWORK or ib_obj_type == NIOS_IPV6_NETWORK):
-            proposed_object = convert_members_to_struct(proposed_object)
-
         if (ib_obj_type == NIOS_EXTENSIBLE_ATTRIBUTE):
             proposed_object = convert_ea_list_to_struct(proposed_object)
 
